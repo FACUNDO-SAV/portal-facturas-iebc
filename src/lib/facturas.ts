@@ -114,10 +114,15 @@ export async function getProveedorResumen(cuit: string) {
 
 export async function getKpis() {
   const supabase = getSupabaseAdmin();
-  const startOfMonth = new Date();
-  startOfMonth.setDate(1);
-  startOfMonth.setHours(0, 0, 0, 0);
-  const startIso = startOfMonth.toISOString();
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const startOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  // Fecha_emision is a plain date column — compare as YYYY-MM-DD strings,
+  // not creado_en (row insert time), so a bulk historical import doesn't
+  // get miscounted as "this month" just because it happened to run now.
+  const toDateStr = (d: Date) => d.toISOString().slice(0, 10);
+  const startStr = toDateStr(startOfMonth);
+  const endStr = toDateStr(startOfNextMonth);
 
   const [totalMesRes, pendUopRes, pendIntranetRes, pendSoftlandRes, monthRowsRes] =
     await Promise.all([
@@ -125,7 +130,8 @@ export async function getKpis() {
         .from("facturas")
         .select("id", { count: "exact", head: true })
         .neq("destino", "no_factura")
-        .gte("creado_en", startIso),
+        .gte("fecha_emision", startStr)
+        .lt("fecha_emision", endStr),
       supabase
         .from("facturas")
         .select("id", { count: "exact", head: true })
@@ -145,7 +151,8 @@ export async function getKpis() {
         .from("facturas")
         .select("monto, monto_ars, moneda")
         .neq("destino", "no_factura")
-        .gte("creado_en", startIso),
+        .gte("fecha_emision", startStr)
+        .lt("fecha_emision", endStr),
     ]);
 
   const montoTotalArs = (monthRowsRes.data ?? []).reduce((acc, r) => {
