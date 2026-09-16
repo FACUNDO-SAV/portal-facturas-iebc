@@ -9,6 +9,11 @@ dist/
 build/
 .next/
 .turbo/
+next-env.d.ts
+*.tsbuildinfo
+
+# Deployment
+.vercel
 
 # OS / editor
 .DS_Store
