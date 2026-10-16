@@ -12,6 +12,15 @@ import {
 } from "@/lib/facturas";
 import { saveFacturaDetail } from "../../actions";
 
+// Espejo exacto del check constraint `estado_valido` en db/schema.sql —
+// si se agrega un estado nuevo ahí, agregarlo acá también.
+const ESTADO_OPTIONS_POR_DESTINO: Record<string, string[]> = {
+  intranet: ["Pendiente de ingreso", "Pendiente de cargar", "Cargada ✓", "En duda"],
+  softland: ["Pendiente de anotar", "Anotada ✓", "En duda"],
+  para_revisar: ["Pendiente de UOP", "Resuelta ✓", "Derivar", "No es factura"],
+  no_factura: ["Sin acción requerida", "Pendiente de revisar", "Derivado"],
+};
+
 function Field({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "3px" }}>
@@ -193,14 +202,31 @@ export default async function FacturaDetailPage({
               <label htmlFor="estado-input" style={{ fontSize: "12px", color: "var(--text-tertiary)", fontWeight: 600 }}>
                 Estado
               </label>
-              <input
+              <select
                 id="estado-input"
-                type="text"
                 name="estado"
                 defaultValue={factura.estado}
                 className="dropdown"
-                style={{ width: "100%" }}
-              />
+                style={{
+                  width: "100%",
+                  padding: "8px 10px",
+                  fontSize: "13px",
+                  border: "1px solid var(--border)",
+                  borderRadius: "6px",
+                  background: "var(--bg)",
+                  color: "var(--text)",
+                }}
+              >
+                {(ESTADO_OPTIONS_POR_DESTINO[factura.destino] ?? [factura.estado]).map((opt) => (
+                  <option key={opt} value={opt}>
+                    {opt}
+                  </option>
+                ))}
+              </select>
+              <span style={{ fontSize: "11.5px", color: "var(--text-tertiary)" }}>
+                Usá esto para marcar a mano una factura que se cargó o anotó por fuera del Portal (ej.
+                directo en el Intranet o en Softland).
+              </span>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
               <label htmlFor="uop-input" style={{ fontSize: "12px", color: "var(--text-tertiary)", fontWeight: 600 }}>

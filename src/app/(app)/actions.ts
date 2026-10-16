@@ -13,6 +13,23 @@ export async function confirmSoftland(facturaId: string) {
   if (error) throw error;
   revalidatePath("/softland");
   revalidatePath("/dashboard");
+  revalidatePath(`/facturas/${facturaId}`);
+}
+
+// Para facturas que se cargaron en el Intranet real por fuera del Portal
+// (alguien las subió directo en el sistema, sin pasar por cargar-intranet).
+// Deja marcarlas "Cargada ✓" a mano, igual que confirmSoftland hace para Softland.
+export async function confirmIntranet(facturaId: string) {
+  const supabase = getSupabaseAdmin();
+  const { error } = await supabase
+    .from("facturas")
+    .update({ estado: "Cargada ✓" })
+    .eq("id", facturaId)
+    .eq("destino", "intranet");
+  if (error) throw error;
+  revalidatePath("/intranet");
+  revalidatePath("/dashboard");
+  revalidatePath(`/facturas/${facturaId}`);
 }
 
 function computeDestinoEstado(uop: number, fechaEmision: string | null) {

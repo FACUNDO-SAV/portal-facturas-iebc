@@ -6,6 +6,7 @@ import {
   fmtDate,
   fmtMoney,
 } from "@/lib/facturas";
+import { confirmIntranet, confirmSoftland } from "../actions";
 
 export function FacturasTable({
   facturas,
@@ -89,7 +90,26 @@ export function FacturasTable({
                 <td className="num" style={{ color: f.uop ? "var(--text-secondary)" : "var(--text-tertiary)" }}>
                   {f.uop ?? "—"}
                 </td>
-                <td>
+                <td style={{ display: "flex", alignItems: "center", gap: "10px", justifyContent: "flex-end" }}>
+                  {f.destino === "intranet" && f.estado !== "Cargada ✓" ? (
+                    <form action={confirmIntranet.bind(null, f.id)}>
+                      <button
+                        type="submit"
+                        className="btn btn-primary"
+                        style={{ fontSize: "12.5px", padding: "6px 12px" }}
+                        title="Usar cuando la factura ya se cargó en el Intranet real por fuera del Portal"
+                      >
+                        Marcar Cargada ✓
+                      </button>
+                    </form>
+                  ) : null}
+                  {f.destino === "softland" && f.estado === "Pendiente de anotar" ? (
+                    <form action={confirmSoftland.bind(null, f.id)}>
+                      <button type="submit" className="btn btn-primary" style={{ fontSize: "12.5px", padding: "6px 12px" }}>
+                        Confirmar registración
+                      </button>
+                    </form>
+                  ) : null}
                   <Link href={`/facturas/${f.id}`} style={{ color: "var(--text-tertiary)", display: "flex" }}>
                     <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="7,4 13,10 7,16" />
